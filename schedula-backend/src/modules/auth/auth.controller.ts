@@ -16,6 +16,7 @@ import { SignupDto } from './dto/signup.dto';
 import { SigninDto } from './dto/signin.dto';
 import { VerifyEmailDto } from './dto/verify-email.dto';
 import { OnboardDoctorDto } from './dto/onboard-doctor.dto';
+import { OnboardPatientDto } from './dto/onboard-patient.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { Request, Response } from 'express';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
@@ -64,9 +65,10 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   async onboardPatient(
     @CurrentUser('userId') userId: string,
+    @Body() dto: OnboardPatientDto,
     @Res({ passthrough: true }) res: Response,
   ) {
-    const result = await this.auth.assignPatientRole(userId);
+    const result = await this.auth.assignPatientRole(userId, dto.firstName, dto.lastName);
     this.setAuthCookies(res, result.tokens.accessToken, result.tokens.refreshToken);
     return result;
   }

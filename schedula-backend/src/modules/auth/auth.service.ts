@@ -226,7 +226,7 @@ export class AuthService {
   }
 
   // Patient Onboarding
-  async assignPatientRole(userId: string) {
+  async assignPatientRole(userId: string, firstName: string, lastName?: string) {
     const existingUser = await this.prisma.user.findUnique({
       where: { id: userId },
     });
@@ -243,10 +243,24 @@ export class AuthService {
       throw new ConflictException('Role already assigned');
     }
 
-    const user = await this.prisma.user.update({
-      where: { id: userId },
-      data: { role: Role.PATIENT },
-    });
+    const [user] = await this.prisma.$transaction([
+      this.prisma.user.update({
+        where: { id: userId },
+        data: { role: Role.PATIENT },
+      }),
+      this.prisma.patient.upsert({
+        where: { userId },
+        create: {
+          userId,
+          firstName,
+          lastName,
+        },
+        update: {
+          firstName,
+          lastName,
+        },
+      }),
+    ]);
 
     const tokens = await this.generateTokens(user);
 

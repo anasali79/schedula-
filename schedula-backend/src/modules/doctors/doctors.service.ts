@@ -231,7 +231,7 @@ export class DoctorsService {
     const scheduleData = await this.getMyAvailability(userId);
     return {
       message: `Availability ${isUpdate ? 'updated' : 'created'} successfully for ${this.capitalize(day)}`,
-      ...scheduleData
+      schedule: scheduleData.schedule
     };
   }
 
@@ -289,7 +289,7 @@ export class DoctorsService {
     const scheduleData = await this.getMyAvailability(userId);
     return {
       message: `Weekly availability ${isUpdate ? 'updated' : 'created'} successfully`,
-      ...scheduleData
+      schedule: scheduleData.schedule
     };
   }
 
@@ -359,6 +359,8 @@ export class DoctorsService {
           consultingStartTime: a.consultingStartTime,
           consultingEndTime: a.consultingEndTime,
           maxAppt: a.maxAppt,
+          booked: 0, // Placeholder for tracking booked slots
+          available: a.maxAppt, // Placeholder for tracking available slots
           session: a.session,
           slotDuration: a.slotDuration,
           display: `${this.to12Hour(a.consultingStartTime)} to ${this.to12Hour(a.consultingEndTime)}`,
@@ -368,6 +370,8 @@ export class DoctorsService {
               startTime: s.startTime,
               endTime: s.endTime,
               maxAppt: s.maxAppt,
+              booked: 0, // Placeholder for tracking booked slots
+              available: s.maxAppt, // Placeholder for tracking available slots
               display: `${this.to12Hour(s.startTime)} to ${this.to12Hour(s.endTime)}`
             })).sort((s1, s2) => this.timeToMinutes(s1.startTime) - this.timeToMinutes(s2.startTime))
           } : {})

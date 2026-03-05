@@ -1,6 +1,6 @@
 # Schedula Backend Documentation
 
-Welcome to the **Schedula Backend** repository! Schedula is a comprehensive booking and scheduling application for doctors and patients. This backend provides a robust REST API for managing users, doctor profiles, and complex scheduling functionalities using the **STREAM** and **WAVE** availability systems.
+Welcome to the **Schedula Backend** repository! Schedula is a comprehensive booking and scheduling application for doctors and patients. This backend provides a robust REST API for managing users, doctor/patient profiles, and complex scheduling functionalities using the **STREAM** and **WAVE** availability systems.
 
 ---
 
@@ -18,7 +18,6 @@ Welcome to the **Schedula Backend** repository! Schedula is a comprehensive book
 
 1. **Install dependencies**:
 ```bash
-cd schedula
 cd schedula-backend
 npm install
 ```
@@ -63,9 +62,6 @@ Below is the comprehensive list of all API endpoints available in the applicatio
   ```
 - **Response**: `{ "user": { "id", "email", "provider" }, "tokens": { "accessToken", "refreshToken" } }`
 
-
-
-
 #### 2. Signin
 - **POST** `/auth/signin`
 - **Body**:
@@ -77,25 +73,22 @@ Below is the comprehensive list of all API endpoints available in the applicatio
   ```
 - **Response**: `{ "user": { ... }, "tokens": { "accessToken", "refreshToken" } }`
 
-
-
-
 #### 3. Email Verification
 - **GET** `/auth/verify-email?token=...`
 - **POST** `/auth/verify-email` (Accepts `{ "token": "..." }`)
 - **Response**: `{ "message": "Email verified successfully" }`
 
-
-
-
-
 #### 4. Onboard Patient
-*Requires JWT Authentication (Cookie or Bearer).*
+*Requires JWT Authentication.*
 - **POST** `/auth/onboard/patient`
+- **Body**:
+  ```json
+  {
+    "firstName": "Jane",
+    "lastName": "Doe"
+  }
+  ```
 - **Response**: `{ "user": { "role": "PATIENT" }, "tokens": { ... } }`
-
-
-
 
 #### 5. Onboard Doctor
 *Requires JWT Authentication.*
@@ -110,14 +103,9 @@ Below is the comprehensive list of all API endpoints available in the applicatio
 - **Response**: `{ "user": { "role": "DOCTOR" }, "doctor": { "id", "firstName" }, "tokens": { ... } }`
 
 
-
-
 #### 6. Google OAuth
 - **GET** `/auth/google` (Redirects to Google Sign-In)
 - **GET** `/auth/google/callback` (Handles Google redirect & sets auth cookies)
-
-
-
 
 #### 7. Delete User
 *Requires JWT Authentication.*
@@ -126,7 +114,29 @@ Below is the comprehensive list of all API endpoints available in the applicatio
 
 ---
 
+### 🧥 Patient Management (`/patients`)
+*Requires JWT Authentication and `Role = PATIENT`.*
 
+#### 1. Get My Profile
+- **GET** `/patients/me`
+- **Response**: Returns the user object with associated patient profile.
+
+#### 2. Update Profile
+- **PUT** `/patients/profile`
+- **Body**:
+  ```json
+  {
+    "firstName": "Jane",
+    "lastName": "Doe",
+    "phone": "+1234567890",
+    "dob": "1995-05-15",
+    "gender": "Female",
+    "bloodGroup": "O+",
+    "address": "123 Main St, City"
+  }
+  ```
+
+---
 
 ### 👨‍⚕️ Doctor Management (`/doctors`)
 *Requires JWT Authentication and `Role = DOCTOR`.*
@@ -134,8 +144,6 @@ Below is the comprehensive list of all API endpoints available in the applicatio
 #### 1. Get My Profile
 - **GET** `/doctors/me`
 - **Response**: Returns the complete user object, associated doctor record, profile, specializations, and availability.
-
-
 
 #### 2. Update Profile
 - **PUT** `/doctors/profile`
@@ -148,8 +156,6 @@ Below is the comprehensive list of all API endpoints available in the applicatio
   }
   ```
 
-
-
 #### 3. Add Specialization
 - **POST** `/doctors/specialization`
 - **Body**:
@@ -161,8 +167,6 @@ Below is the comprehensive list of all API endpoints available in the applicatio
 
 ---
 
-
-
 ### 📅 Doctor Availability Management
 
 Schedula supports two main scheduling systems:
@@ -172,19 +176,6 @@ Schedula supports two main scheduling systems:
 #### 1. Get All Availability
 - **GET** `/doctors/availability`
 - **Response**: Returns an array of availability records grouped by days, along with any generated `slots`.
-  ```json
-  [
-    {
-      "id": "abc-123",
-      "dayOfWeek": 1,
-      "scheduleType": "STREAM",
-      "consultingStartTime": "13:00",
-      "consultingEndTime": "14:00",
-      "maxAppt": 30,
-      "slots": []
-    }
-  ]
-  ```
 
 #### 2. Set Availability For a Specific Day (e.g., Monday)
 Replaces all existing availabilities for the provided day (`monday`, `tuesday`, `wednesday`, etc.)
@@ -211,7 +202,6 @@ Replaces all existing availabilities for the provided day (`monday`, `tuesday`, 
     ]
   }
   ```
-- **Note**: `slotDuration` is required for `WAVE` scheduling. The system will automatically generate slots of `30` mins. 
 
 #### 3. Set Availability For the Whole Week
 Replaces the availability for all the supplied days at once.
@@ -230,30 +220,13 @@ Replaces the availability for all the supplied days at once.
             "maxAppt": 10
           }
         ]
-      },
-      {
-        "day": "wednesday",
-        "availabilities": [
-          {
-            "scheduleType": "WAVE",
-            "consultingStartTime": "09:00",
-            "consultingEndTime": "11:00",
-            "maxAppt": 1,
-            "slotDuration": 15
-          }
-        ]
       }
     ]
   }
   ```
-- **Response**: `{ "message": "Week availability synced successfully.", "count": 2 }`
 
 #### 4. Delete Entire Day's Availability
-Deletes all availability blocks & slots for a given day.
-- **DELETE** `/doctors/availability/:day` (Example: `/doctors/availability/monday`)
-- **Response**: `{ "message": "Availability for monday deleted." }`
+- **DELETE** `/doctors/availability/:day`
 
 #### 5. Delete a Specific Slot / Time Block
-Deletes a specific `Availability` block or an individual `AvailabilitySlot` (WAVE slot) using its ID.
 - **DELETE** `/doctors/availability/slot/:slotId`
-- **Response**: `{ "message": "Slot or availability block deleted successfully." }`

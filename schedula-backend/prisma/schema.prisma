@@ -23,35 +23,49 @@ enum ApprovalStatus {
 }
 
 model User {
-  id                 String             @id @default(uuid())
-  email              String             @unique
+  id                 String              @id @default(uuid())
+  email              String              @unique
   passwordHash       String? // null for Google users
   role               Role?
-  provider           AuthProvider       @default(LOCAL)
-  isVerified         Boolean            @default(false)
-  googleId           String?            @unique
+  provider           AuthProvider        @default(LOCAL)
+  isVerified         Boolean             @default(false)
+  googleId           String?             @unique
   refreshTokenHash   String?
-  createdAt          DateTime           @default(now())
-  updatedAt          DateTime           @updatedAt
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
   verificationTokens VerificationToken[]
   doctor             Doctor?
+  patient            Patient?
 }
 
-
-
 model Doctor {
-  id             String         @id @default(uuid())
-  userId         String         @unique
-  user           User           @relation(fields: [userId], references: [id], onDelete: Cascade)
-  firstName      String
-  lastName       String?
-  licenseNumber  String?
-  approvalStatus ApprovalStatus @default(PENDING)
-  createdAt      DateTime       @default(now())
-  updatedAt      DateTime       @updatedAt
-  profile        Profile?
+  id              String           @id @default(uuid())
+  userId          String           @unique
+  user            User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  firstName       String
+  lastName        String?
+  licenseNumber   String?
+  approvalStatus  ApprovalStatus   @default(PENDING)
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  profile         Profile?
   specializations Specialization[]
-  availabilities Availability[]
+  availabilities  Availability[]
+}
+
+model Patient {
+  id         String    @id @default(uuid())
+  userId     String    @unique
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  firstName  String
+  lastName   String?
+  phone      String?
+  dob        DateTime?
+  gender     String?
+  bloodGroup String?
+  address    String?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
 }
 
 model Profile {
@@ -61,16 +75,16 @@ model Profile {
   bio               String?
   experienceYears   Int?
   consultationFee   Decimal? @db.Decimal(10, 2)
-  consultationHours Json?    // e.g. {"monday": ["09:00-17:00"], "tuesday": ["09:00-12:00"]}
+  consultationHours Json? // e.g. {"monday": ["09:00-17:00"], "tuesday": ["09:00-12:00"]}
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 }
 
 model Specialization {
-  id       String  @id @default(uuid())
-  doctorId String
-  doctor   Doctor  @relation(fields: [doctorId], references: [id], onDelete: Cascade)
-  name     String
+  id        String   @id @default(uuid())
+  doctorId  String
+  doctor    Doctor   @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+  name      String
   createdAt DateTime @default(now())
 }
 
@@ -80,38 +94,38 @@ enum ScheduleType {
 }
 
 model Availability {
-  id                  String   @id @default(uuid())
-  doctorId            String
-  doctor              Doctor   @relation(fields: [doctorId], references: [id], onDelete: Cascade)
-  
+  id       String @id @default(uuid())
+  doctorId String
+  doctor   Doctor @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+
   // Day of week (0=Sunday, 1=Monday, ... 6=Saturday)
-  dayOfWeek           Int
-  
-  scheduleType        ScheduleType @default(STREAM)
+  dayOfWeek Int
+
+  scheduleType ScheduleType @default(STREAM)
 
   consultingStartTime String
   consultingEndTime   String
   maxAppt             Int
-  session             String?  // e.g. "Morning", "Evening"
-  slotDuration        Int?     // In minutes, only required for WAVE
-  
-  slots               AvailabilitySlot[]
-  
-  createdAt           DateTime @default(now())
-  updatedAt           DateTime @updatedAt
+  session             String? // e.g. "Morning", "Evening"
+  slotDuration        Int? // In minutes, only required for WAVE
+
+  slots AvailabilitySlot[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model AvailabilitySlot {
   id             String       @id @default(uuid())
   availabilityId String
   availability   Availability @relation(fields: [availabilityId], references: [id], onDelete: Cascade)
-  
-  startTime      String
-  endTime        String
-  maxAppt        Int          // Appointments allowed for this specific slot
-  
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
+
+  startTime String
+  endTime   String
+  maxAppt   Int // Appointments allowed for this specific slot
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model VerificationToken {

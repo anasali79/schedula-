@@ -97,15 +97,11 @@ export class AuthService {
       });
 
       const verificationLink = `${getApiBaseUrl()}/api/v1/auth/verify-email?token=${token}`;
-      console.log(`[AuthService] Attempting to send verification email to ${user.email}...`);
+      console.log(`[AuthService] Triggering verification email in background for ${user.email}...`);
       
-      try {
-        // We set a threshold here: if email fails, we don't want to stop the whole signup.
-        await this.emailService.sendWelcomeVerificationEmail(user.email, verificationLink);
-        console.log(`[AuthService] Verification email sent.`);
-      } catch (mailError: any) {
-        console.error(`[AuthService] Verification email failed but continuing: ${mailError.message}`);
-      }
+      // We don't await here so the user gets an immediate response
+      // Errors will be caught inside the email service method logs
+      this.emailService.sendWelcomeVerificationEmail(user.email, verificationLink);
 
       console.log(`[AuthService] Generating tokens...`);
       const tokens = await this.generateTokens(user);

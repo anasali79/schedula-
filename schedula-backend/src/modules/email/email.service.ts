@@ -11,29 +11,17 @@ export class EmailService {
     const user = process.env.EMAIL_USER?.trim();
     const pass = process.env.EMAIL_PASS?.trim();
 
-    if (host && user && pass) {
-      console.log(`[EmailService] SMTP Initializing: ${host}:${port} (${user})`);
+    if (user && pass) {
+      console.log(`[EmailService] SMTP Initializing using Gmail Service (${user})`);
       this.transporter = nodemailer.createTransport({
-        host,
-        port,
-        secure: port === 465,
+        service: 'gmail',
         auth: { user, pass },
-        connectionTimeout: 10000,
-        greetingTimeout: 10000,
-        socketTimeout: 10000,
-        family: 4,
+        connectionTimeout: 5000,
+        greetingTimeout: 5000,
+        socketTimeout: 5000,
       } as any);
-
-      // Verify connection on startup
-      this.transporter.verify((error, success) => {
-        if (error) {
-          console.error('[EmailService] SMTP Verification Failed:', error.message);
-        } else {
-          console.log('[EmailService] SMTP Server is ready to take our messages');
-        }
-      });
     } else {
-      console.warn('[EmailService] SMTP credentials missing in environment variables. Gmail will not be sent.');
+      console.warn('[EmailService] SMTP credentials missing in environment variables. Emails will not be sent.');
     }
   }
 
@@ -41,7 +29,7 @@ export class EmailService {
     const from = process.env.EMAIL_FROM || process.env.EMAIL_USER || 'noreply@schedula.com';
 
     if (!this.transporter) {
-      console.warn('[Email] SMTP not configured. Would send verification to:', to, 'Link:', verificationLink);
+      console.warn('[Email] SMTP not configured. Verification Link:', verificationLink);
       return;
     }
 
@@ -66,13 +54,9 @@ export class EmailService {
     </div>
   `,
       });
-      console.log(`[Email] Verification email sent successfully to: ${to}`);
-    } catch (error) {
-      console.error(`[Email] Failed to send verification email to: ${to}`, error);
-      // We don't throw here to avoid breaking the signup flow, 
-      // but the user won't be able to verify. 
-      // Actually, it might be better to throw if verification is mandatory.
-      throw error;
+      console.log(`[Email] Verification email sent to: ${to}`);
+    } catch (error: any) {
+      console.error(`[Email] SMTP Error for ${to}:`, error.message);
     }
   }
 

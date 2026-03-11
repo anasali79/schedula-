@@ -97,11 +97,11 @@ export class AuthService {
       });
 
       const verificationLink = `${getApiBaseUrl()}/api/v1/auth/verify-email?token=${token}`;
-      console.log(`[AuthService] Triggering verification email in background for ${user.email}...`);
+      console.log(`[AuthService] Triggering verification email for ${user.email}...`);
       
-      // We don't await here so the user gets an immediate response
-      // Errors will be caught inside the email service method logs
-      this.emailService.sendWelcomeVerificationEmail(user.email, verificationLink);
+      // Fire and forget, but catch errors to prevent any process issues
+      this.emailService.sendWelcomeVerificationEmail(user.email, verificationLink)
+        .catch(err => console.error('[AuthService] Background email failed:', err.message));
 
       console.log(`[AuthService] Generating tokens...`);
       const tokens = await this.generateTokens(user);

@@ -24,6 +24,7 @@ export class EmailService {
         connectionTimeout: 10000, 
         greetingTimeout: 10000,
         socketTimeout: 10000,
+        family: 4, // Force IPv4 to prevent ENETUNREACH on Render
       } as any);
     } else {
       console.warn('[EmailService] SMTP credentials missing in environment variables. Emails will not be sent.');

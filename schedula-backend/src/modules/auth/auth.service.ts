@@ -70,9 +70,11 @@ export class AuthService {
 
   // Email Signup
   async signup(dto: SignupDto) {
+    console.log(`[AuthService] Signup initiated for ${dto.email}`);
     const passwordHash = await bcrypt.hash(dto.password, 10);
 
     try {
+      console.log(`[AuthService] Creating user in database...`);
       const user = await this.prisma.user.create({
         data: {
           email: dto.email.toLowerCase(),
@@ -80,6 +82,7 @@ export class AuthService {
           provider: AuthProvider.LOCAL,
         },
       });
+      console.log(`[AuthService] User created with ID: ${user.id}`);
 
       const token = crypto.randomBytes(32).toString('hex');
       const expiresAt = new Date();
@@ -97,15 +100,16 @@ export class AuthService {
       console.log(`[AuthService] Attempting to send verification email to ${user.email}...`);
       
       try {
+        // We set a threshold here: if email fails, we don't want to stop the whole signup.
         await this.emailService.sendWelcomeVerificationEmail(user.email, verificationLink);
-        console.log(`[AuthService] Email sent successfully.`);
+        console.log(`[AuthService] Verification email sent.`);
       } catch (mailError: any) {
-        console.error(`[AuthService] Email sending failed, but user was created:`, mailError.message);
-        // We continue so the user at least gets the response, 
-        // they can try to resend verification later if needed.
+        console.error(`[AuthService] Verification email failed but continuing: ${mailError.message}`);
       }
 
+      console.log(`[AuthService] Generating tokens...`);
       const tokens = await this.generateTokens(user);
+      console.log(`[AuthService] Signup completed successfully.`);
 
       return {
         message: 'Signup successful. Please verify your email.',

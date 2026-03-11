@@ -22,7 +22,6 @@ export class EmailService {
         greetingTimeout: 10000,
         socketTimeout: 10000,
         family: 4,
-        localAddress: '0.0.0.0', // Force local IPv4 binding
       } as any);
 
       // Verify connection on startup

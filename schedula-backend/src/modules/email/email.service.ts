@@ -12,13 +12,18 @@ export class EmailService {
     const pass = process.env.EMAIL_PASS?.trim();
 
     if (user && pass) {
-      console.log(`[EmailService] SMTP Initializing using Gmail Service (${user})`);
+      console.log(`[EmailService] SMTP Initializing (Port 465 + Pooling) for ${user}`);
       this.transporter = nodemailer.createTransport({
-        service: 'gmail',
+        host: 'smtp.gmail.com',
+        port: 465,
+        secure: true, // SSL
         auth: { user, pass },
-        connectionTimeout: 5000,
-        greetingTimeout: 5000,
-        socketTimeout: 5000,
+        pool: true, // Use pooling
+        maxConnections: 5,
+        maxMessages: 100,
+        connectionTimeout: 10000, 
+        greetingTimeout: 10000,
+        socketTimeout: 10000,
       } as any);
     } else {
       console.warn('[EmailService] SMTP credentials missing in environment variables. Emails will not be sent.');

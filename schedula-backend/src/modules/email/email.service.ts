@@ -16,12 +16,14 @@ export class EmailService {
       this.transporter = nodemailer.createTransport({
         host,
         port,
-        secure: port === 465, // true for 465, false for other ports
+        secure: port === 465,
         auth: { user, pass },
-        connectionTimeout: 10000, // 10 seconds
+        connectionTimeout: 10000,
         greetingTimeout: 10000,
         socketTimeout: 10000,
-      });
+        family: 4,
+        localAddress: '0.0.0.0', // Force local IPv4 binding
+      } as any);
 
       // Verify connection on startup
       this.transporter.verify((error, success) => {

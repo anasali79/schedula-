@@ -520,7 +520,22 @@ export class AppointmentsService {
       throw new BadRequestException(`The new slot is fully booked.`);
     }
 
-    // 4. Update Token and Appointment
+    // 4. Check if patient already has an appointment for this slot on this date
+    const existingAppointment = await this.prisma.appointment.findFirst({
+      where: {
+        patientId: appointment.patientId,
+        slotId: newSlot.id,
+        appointmentDate: startOfDay,
+        id: { not: appointmentId }, // Exclude current appointment
+        status: { in: [AppointmentStatus.CONFIRMED] },
+      },
+    });
+
+    if (existingAppointment) {
+      throw new BadRequestException('You already have another confirmed appointment for this slot on this date.');
+    }
+
+    // 5. Update Token and Appointment
     const newTokenNumber = bookedCount + 1;
     const oldDateStr = appointment.appointmentDate.toISOString().split('T')[0];
     const oldSlotTime = `${this.to12Hour(appointment.slot.startTime)} - ${this.to12Hour(appointment.slot.endTime)}`;
